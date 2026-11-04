@@ -1,0 +1,37 @@
+{
+  "name": "api-miniblog",
+  "version": "1.0.0",
+  "description": "API REST de autores y posts con Node.js, Express y PostgreSQL",
+  "main": "src/index.js",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:setup": "node src/db/run-sql.js setup.sql",
+    "db:seed": "node src/db/run-sql.js seed.sql",
+    "db:test-connection": "node src/db/test-connection.js"
+  },
+  "keywords": [
+    "express",
+    "postgresql",
+    "rest",
+    "api"
+  ],
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^18.0.9",
+    "express": "^5.3.0",
+    "pg": "^8.23.1",
+    "swagger-ui-express": "^5.0.1",
+    "yamljs": "^0.3.0"
+  },
+  "devDependencies": {
+    "supertest": "^7.3.1",
+    "vitest": "^5.1.0"
+  }
+}
