@@ -1,0 +1,485 @@
+openapi: 3.1.1
+info:
+  title: Api MiniBlog
+  version: 1.0.0
+  description: API REST para gestionar autores y posts de un blog.
+  license:
+    name: ISC
+    identifier: ISC
+
+servers:
+  - url: /
+    description: El mismo servidor que publica esta documentación
+
+# La API es pública: ninguna operación requiere autenticación.
+security: []
+
+tags:
+  - name: Autores
+    description: Operaciones sobre autores
+  - name: Posts
+    description: Operaciones sobre posts
+  - name: Sistema
+    description: Estado del servicio
+
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      summary: Comprobar que el servicio está activo
+      tags:
+        - Sistema
+      responses:
+        '200':
+          description: El servicio está activo
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  /authors:
+    get:
+      operationId: getAllAuthors
+      summary: Listar autores
+      tags:
+        - Autores
+      responses:
+        '200':
+          description: Lista de autores
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Author'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      operationId: createAuthor
+      summary: Crear un autor
+      tags:
+        - Autores
+      requestBody:
+        $ref: '#/components/requestBodies/AuthorBody'
+      responses:
+        '201':
+          description: Autor creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Author'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /authors/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      operationId: getAuthorById
+      summary: Obtener un autor
+      tags:
+        - Autores
+      responses:
+        '200':
+          description: Autor encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Author'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      operationId: updateAuthor
+      summary: Actualizar un autor
+      description: Reemplaza el autor. Si se omite `bio`, queda en null.
+      tags:
+        - Autores
+      requestBody:
+        $ref: '#/components/requestBodies/AuthorBody'
+      responses:
+        '200':
+          description: Autor actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Author'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      operationId: deleteAuthor
+      summary: Eliminar un autor
+      description: También elimina todos los posts del autor.
+      tags:
+        - Autores
+      responses:
+        '204':
+          description: Autor eliminado
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /posts:
+    get:
+      operationId: getAllPosts
+      summary: Listar posts
+      tags:
+        - Posts
+      responses:
+        '200':
+          description: Lista de posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Post'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      operationId: createPost
+      summary: Crear un post
+      description: Si se omite `published`, el post queda sin publicar.
+      tags:
+        - Posts
+      requestBody:
+        $ref: '#/components/requestBodies/PostBody'
+      responses:
+        '201':
+          description: Post creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /posts/author/{authorId}:
+    parameters:
+      - name: authorId
+        in: path
+        required: true
+        description: Id del autor
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+    get:
+      operationId: getPostsByAuthor
+      summary: Listar los posts de un autor
+      description: >-
+        Devuelve cada post con los datos de su autor. Si el autor existe pero no
+        tiene posts, devuelve una lista vacía.
+      tags:
+        - Posts
+      responses:
+        '200':
+          description: Posts del autor
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PostWithAuthor'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /posts/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      operationId: getPostById
+      summary: Obtener un post
+      tags:
+        - Posts
+      responses:
+        '200':
+          description: Post encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      operationId: updatePost
+      summary: Actualizar un post
+      description: Reemplaza el post. Si se omite `published`, queda en false.
+      tags:
+        - Posts
+      requestBody:
+        $ref: '#/components/requestBodies/PostBody'
+      responses:
+        '200':
+          description: Post actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      operationId: deletePost
+      summary: Eliminar un post
+      tags:
+        - Posts
+      responses:
+        '204':
+          description: Post eliminado
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      description: Id del recurso
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 2147483647
+
+  requestBodies:
+    AuthorBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AuthorInput'
+    PostBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PostInput'
+
+  responses:
+    BadRequest:
+      description: Datos inválidos
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: name es requerido
+            status: 400
+    NotFound:
+      description: Recurso no encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Autor no encontrado
+            status: 404
+    Conflict:
+      description: El email ya está registrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: El email ya está registrado
+            status: 409
+    InternalError:
+      description: Error interno del servidor
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Error interno del servidor
+            status: 500
+
+  schemas:
+    Author:
+      type: object
+      required:
+        - id
+        - name
+        - email
+        - bio
+        - created_at
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Ana García
+        email:
+          type: string
+          format: email
+          example: ana@example.com
+        bio:
+          type:
+            - string
+            - 'null'
+          example: Desarrolladora full-stack
+        created_at:
+          type: string
+          format: date-time
+
+    AuthorInput:
+      type: object
+      required:
+        - name
+        - email
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: Ana García
+        email:
+          type: string
+          format: email
+          maxLength: 150
+          description: Debe ser único. Se guarda en minúsculas.
+          example: ana@example.com
+        bio:
+          type:
+            - string
+            - 'null'
+          example: Desarrolladora full-stack
+
+    Post:
+      type: object
+      required:
+        - id
+        - title
+        - content
+        - author_id
+        - published
+        - created_at
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Introducción a Node.js
+        content:
+          type: string
+          example: Node.js es un runtime...
+        author_id:
+          type: integer
+          example: 1
+        published:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+
+    PostInput:
+      type: object
+      required:
+        - title
+        - content
+        - author_id
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          example: Introducción a Node.js
+        content:
+          type: string
+          minLength: 1
+          example: Node.js es un runtime...
+        author_id:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+          description: Id de un autor existente.
+          example: 1
+        published:
+          type: boolean
+          default: false
+
+    PostWithAuthor:
+      allOf:
+        - $ref: '#/components/schemas/Post'
+        - type: object
+          required:
+            - author
+          properties:
+            author:
+              type: object
+              required:
+                - id
+                - name
+                - email
+                - bio
+              properties:
+                id:
+                  type: integer
+                  example: 1
+                name:
+                  type: string
+                  example: Ana García
+                email:
+                  type: string
+                  format: email
+                  example: ana@example.com
+                bio:
+                  type:
+                    - string
+                    - 'null'
+                  example: Desarrolladora full-stack
+
+    Error:
+      type: object
+      required:
+        - error
+        - status
+      properties:
+        error:
+          type: string
+          description: Descripción del error
+        status:
+          type: integer
+          description: Código de estado HTTP
