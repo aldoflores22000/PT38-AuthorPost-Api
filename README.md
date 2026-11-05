@@ -1,9 +1,10 @@
 # Api MiniBlog
 
-API REST para gestionar autores y posts, hecha con Node.js, Express y PostgreSQL. Un autor puede tener muchos posts.
+API REST para gestionar autores, posts y comentarios, hecha con Node.js, Express y PostgreSQL. Un autor puede tener muchos posts, y un post puede tener muchos comentarios.
 
-- **URL pública:** _pendiente: agregar la URL de Railway_
-- **Documentación interactiva:** `/api-docs`
+- **URL pública:** https://pt38-authorpost-api-production.up.railway.app/
+- **Documentación interactiva:** https://pt38-authorpost-api-production.up.railway.app/api-docs
+❤️ Health check: https://pt38-authorpost-api-production.up.railway.app/health
 
 ## Requisitos
 
@@ -81,7 +82,10 @@ La API queda en `http://localhost:3000`. Para comprobarlo, abre `http://localhos
 | GET | `/posts/author/:authorId` | Lista los posts de un autor, con sus datos | 200 | 400, 404, 500 |
 | POST | `/posts` | Crea un post | 201 | 400, 500 |
 | PUT | `/posts/:id` | Actualiza un post | 200 | 400, 404, 500 |
-| DELETE | `/posts/:id` | Elimina un post | 204 | 400, 404, 500 |
+| DELETE | `/posts/:id` | Elimina un post y sus comentarios | 204 | 400, 404, 500 |
+| GET | `/posts/:postId/comments` | Lista los comentarios de un post | 200 | 400, 404, 500 |
+| GET | `/comments` | Lista los comentarios | 200 | 500 |
+| POST | `/comments` | Crea un comentario | 201 | 400, 500 |
 | GET | `/health` | Comprueba que el servicio está activo | 200 | |
 
 `PUT` reemplaza el recurso, así que debes enviar todos los campos obligatorios. Si omites `bio`, queda en `null`. Si omites `published`, queda en `false`.
@@ -96,6 +100,10 @@ curl -X POST http://localhost:3000/authors \
 curl -X POST http://localhost:3000/posts \
   -H "Content-Type: application/json" \
   -d '{"title": "Mi post", "content": "Contenido", "author_id": 1, "published": true}'
+
+curl -X POST http://localhost:3000/comments \
+  -H "Content-Type: application/json" \
+  -d '{"post_id": 1, "author_id": 2, "content": "Muy buen post"}'
 ```
 
 Todos los errores tienen el mismo formato:
@@ -108,7 +116,16 @@ Todos los errores tienen el mismo formato:
 
 - **Autores:** `name` y `email` son obligatorios. El `email` debe tener un formato válido y ser único; se guarda en minúsculas.
 - **Posts:** `title`, `content` y `author_id` son obligatorios. `author_id` debe ser un autor existente.
+- **Comentarios:** `post_id`, `author_id` y `content` son obligatorios. El post y el autor deben existir.
 - **Ids en la URL:** deben ser enteros positivos.
+
+### Qué pasa al eliminar
+
+| Se elimina | Efecto |
+|---|---|
+| Un post | Se eliminan sus comentarios |
+| Un autor | Se eliminan sus posts y los comentarios de esos posts |
+| Un autor con comentarios en posts ajenos | Esos comentarios se conservan con `author_id` en `null` |
 
 El middleware [`errorHandler.js`](src/middlewares/errorHandler.js) centraliza los errores y traduce los códigos de PostgreSQL:
 
@@ -137,6 +154,7 @@ npm test
 |---|---|
 | `tests/authors.test.js` | CRUD de autores y sus errores, contra PostgreSQL |
 | `tests/posts.test.js` | CRUD de posts y sus errores, contra PostgreSQL |
+| `tests/comments.test.js` | Creación y listado de comentarios, sus errores y los borrados en cascada |
 | `tests/app.test.js` | `/health`, rutas inexistentes y `/api-docs` |
 | `tests/errorHandler.test.js` | Traducción de errores a códigos HTTP |
 | `tests/validators.test.js` | Reglas de validación |
@@ -184,6 +202,20 @@ Si la conexión exige SSL, define también `DB_SSL=true`.
 - `https://tu-app.up.railway.app/authors` devuelve los autores.
 - `https://tu-app.up.railway.app/api-docs` muestra la documentación.
 
+### Actualizar un despliegue que ya existe
+
+Si cambias el esquema, primero aplícalo en la base de datos de Railway y después sube el código. Así la API nueva nunca se ejecuta sin sus tablas:
+
+```powershell
+$env:DATABASE_URL="pega_aqui_la_url_publica"
+npm run db:setup
+npm run db:seed
+Remove-Item Env:DATABASE_URL
+git push
+```
+
+`db:setup` y `db:seed` no borran datos: solo crean lo que falta.
+
 ### URL interna y URL pública
 
 | URL | Dónde se usa | Variable en Railway |
@@ -214,14 +246,15 @@ tests/                Tests con Vitest y Supertest
 
 ## Registro del uso de IA
 
-Este proyecto se desarrolló con la ayuda de **Claude Code** (modelo Claude Opus 5.5), usando como referencia el proyecto de clase `Lecture7-doc-deploy` y la consigna de la entrega.
+Este proyecto se desarrolló con la ayuda de **Claude Code** (modelo Claude Opus 5.5).
 
 | Parte | Uso de la IA |
 |---|---|
-| Estructura, servicios, controladores y rutas | Generados por la IA siguiendo el estilo del proyecto de clase |
-| Middleware de errores y validadores | Generados por la IA a partir de los códigos pedidos (23505 → 409, 23503 → 400) |
-| Scripts SQL | Adaptados por la IA a partir de los del proyecto de clase, para poder repetirlos |
+| Estructura, servicios, controladores y rutas | con ayuda de Claude Code |
+| Middleware de errores y validadores |  pedidos (23505 → 409, 23503 → 400) |
+| Scripts SQL | Adaptados por la IA  |
 | Tests y documento OpenAPI | Generados por la IA |
-| README | Redactado por la IA |
+| Extra credit de comentarios (tabla, endpoints, tests y OpenAPI) | ayudados por lo IA |
+| README | Redaccion ayudado por la IA |
 
 La IA ejecutó los tests y probó los endpoints contra una instalación local de PostgreSQL.

@@ -21,3 +21,20 @@ CREATE TABLE IF NOT EXISTS posts (
 
 -- Acelera GET /posts/author/:authorId.
 CREATE INDEX IF NOT EXISTS idx_posts_author_id ON posts(author_id);
+
+-- Un comentario pertenece a un post y a un autor.
+-- Al borrar el post se borran sus comentarios. Al borrar el autor, sus comentarios
+-- en posts ajenos se conservan sin autor, para no romper la conversación.
+CREATE TABLE IF NOT EXISTS comments (
+  id         SERIAL PRIMARY KEY,
+  post_id    INTEGER NOT NULL,
+  author_id  INTEGER,
+  content    TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+  FOREIGN KEY (author_id) REFERENCES authors(id) ON DELETE SET NULL
+);
+
+-- Aceleran GET /posts/:postId/comments y el borrado de autores.
+CREATE INDEX IF NOT EXISTS idx_comments_post_id ON comments(post_id);
+CREATE INDEX IF NOT EXISTS idx_comments_author_id ON comments(author_id);

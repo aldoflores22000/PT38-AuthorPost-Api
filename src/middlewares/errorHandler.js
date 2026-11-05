@@ -12,6 +12,8 @@ const POSTGRES_ERRORS = {
 const CONSTRAINT_MESSAGES = {
   authors_email_key: "El email ya está registrado",
   posts_author_id_fkey: "El autor indicado no existe",
+  comments_post_id_fkey: "El post indicado no existe",
+  comments_author_id_fkey: "El autor indicado no existe",
 };
 
 /**

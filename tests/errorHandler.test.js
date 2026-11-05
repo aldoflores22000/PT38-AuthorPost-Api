@@ -24,6 +24,13 @@ describe("resolveError", () => {
     });
   });
 
+  test.each([
+    ["comments_post_id_fkey", "El post indicado no existe"],
+    ["comments_author_id_fkey", "El autor indicado no existe"],
+  ])("traduce la restricción %s", (constraint, message) => {
+    expect(resolveError(postgresError("23503", constraint))).toEqual({ statusCode: 400, message });
+  });
+
   test("no expone el mensaje original de PostgreSQL", () => {
     expect(resolveError(postgresError("23505")).message).not.toContain("detalle interno");
   });

@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest";
 import {
   validarAuthor,
+  validarComment,
   validarEmail,
   validarIdParam,
   validarPost,
@@ -68,6 +69,24 @@ describe("validarAuthor", () => {
 
   test("rechaza un cuerpo ausente", () => {
     expect(validarAuthor(undefined)).toContain("name");
+  });
+});
+
+describe("validarComment", () => {
+  test("acepta un comentario válido", () => {
+    expect(validarComment({ post_id: 1, author_id: 1, content: "Hola" })).toBeNull();
+  });
+
+  test("rechaza un cuerpo ausente", () => {
+    expect(validarComment(undefined)).toContain("post_id");
+  });
+
+  test.each([0, -1, 1.5, "1", 2147483648])("rechaza post_id %s", (post_id) => {
+    expect(validarComment({ post_id, author_id: 1, content: "c" })).toContain("post_id");
+  });
+
+  test("rechaza content vacío", () => {
+    expect(validarComment({ post_id: 1, author_id: 1, content: " " })).toContain("content");
   });
 });
 

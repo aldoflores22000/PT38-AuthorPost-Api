@@ -21,3 +21,19 @@ WHERE NOT EXISTS (
   SELECT 1 FROM posts p WHERE p.title = v.title AND p.author_id = a.id
 )
 ORDER BY v.position;
+
+-- Cada comentario busca su post por título y su autor por email.
+INSERT INTO comments (post_id, author_id, content)
+SELECT p.id, a.id, v.content
+FROM (VALUES
+  (1, 'Introducción a Node.js', 'carlos@example.com', 'Muy buena introducción, gracias.'),
+  (2, 'Introducción a Node.js', 'maria@example.com',  '¿Harás una segunda parte?'),
+  (3, 'PostgreSQL vs MySQL',    'ana@example.com',    'Yo también prefiero PostgreSQL.')
+) AS v(position, post_title, email, content)
+JOIN posts p ON p.title = v.post_title
+JOIN authors a ON a.email = v.email
+WHERE NOT EXISTS (
+  SELECT 1 FROM comments c
+  WHERE c.post_id = p.id AND c.author_id = a.id AND c.content = v.content
+)
+ORDER BY v.position;

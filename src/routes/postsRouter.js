@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { getCommentsByPost } from "../controllers/commentsController.js";
 import {
   createPost,
   deletePost,
@@ -13,6 +14,7 @@ const postsRouter = Router();
 
 postsRouter.get("/", getAllPosts);
 postsRouter.get("/author/:authorId", validateIdParam("authorId"), getPostsByAuthor);
+postsRouter.get("/:postId/comments", validateIdParam("postId"), getCommentsByPost);
 postsRouter.get("/:id", validateIdParam("id"), getPostById);
 postsRouter.post("/", createPost);
 postsRouter.put("/:id", validateIdParam("id"), updatePost);

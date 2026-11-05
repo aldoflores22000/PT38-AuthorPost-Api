@@ -43,6 +43,20 @@ export function validarIdParam(id) {
 }
 
 /**
+ * Valida un id obligatorio recibido en el cuerpo: debe ser un número entero positivo.
+ * @param {*} value Valor a validar.
+ * @param {string} field Nombre del campo, usado en el mensaje.
+ * @returns {string|null} Mensaje de error o null.
+ */
+function validarIdCampo(value, field) {
+  if (value === undefined || value === null || value === "") return `${field} es requerido`;
+  if (!Number.isInteger(value) || value < 1 || value > MAX_POSTGRES_INTEGER) {
+    return `${field} debe ser un entero positivo`;
+  }
+  return null;
+}
+
+/**
  * Valida el cuerpo usado para crear o actualizar un autor.
  * @param {object} [body] Cuerpo de la petición.
  * @returns {string|null} Primer error encontrado o null.
@@ -72,15 +86,24 @@ export function validarPost({ title, content, author_id, published } = {}) {
   const errorContent = validarTextoRequerido(content, "content");
   if (errorContent) return errorContent;
 
-  if (author_id === undefined || author_id === null || author_id === "") {
-    return "author_id es requerido";
-  }
-  if (!Number.isInteger(author_id) || author_id < 1 || author_id > MAX_POSTGRES_INTEGER) {
-    return "author_id debe ser un entero positivo";
-  }
+  const errorAuthorId = validarIdCampo(author_id, "author_id");
+  if (errorAuthorId) return errorAuthorId;
 
   if (published !== undefined && typeof published !== "boolean") {
     return "published debe ser true o false";
   }
   return null;
+}
+
+/**
+ * Valida el cuerpo usado para crear un comentario.
+ * @param {object} [body] Cuerpo de la petición.
+ * @returns {string|null} Primer error encontrado o null.
+ */
+export function validarComment({ post_id, author_id, content } = {}) {
+  return (
+    validarIdCampo(post_id, "post_id") ??
+    validarIdCampo(author_id, "author_id") ??
+    validarTextoRequerido(content, "content")
+  );
 }

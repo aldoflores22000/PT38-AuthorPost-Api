@@ -10,11 +10,12 @@ export async function setupSchema() {
 }
 
 /**
- * Deja la base de datos en un estado conocido: los autores 1 y 2, y los posts 1 y 2.
- * El autor 1 tiene los dos posts y el autor 2 no tiene ninguno.
+ * Deja la base de datos en un estado conocido: los autores 1 y 2, los posts 1 y 2,
+ * y los comentarios 1 y 2. El autor 1 tiene los dos posts y el autor 2 no tiene ninguno.
+ * Ambos comentarios están en el post 1, uno de cada autor; el post 2 no tiene comentarios.
  */
 export async function resetData() {
-  await pool.query("TRUNCATE posts, authors RESTART IDENTITY CASCADE");
+  await pool.query("TRUNCATE comments, posts, authors RESTART IDENTITY CASCADE");
   await pool.query(`
     INSERT INTO authors (name, email, bio) VALUES
       ('Ana García',  'ana@example.com',    'Full-stack dev'),
@@ -24,5 +25,10 @@ export async function resetData() {
     INSERT INTO posts (title, content, author_id, published) VALUES
       ('Primer post',  'Contenido uno', 1, TRUE),
       ('Segundo post', 'Contenido dos', 1, FALSE)
+  `);
+  await pool.query(`
+    INSERT INTO comments (post_id, author_id, content) VALUES
+      (1, 2, 'Muy buen post'),
+      (1, 1, 'Gracias por leer')
   `);
 }
