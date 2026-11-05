@@ -9,7 +9,13 @@ info:
 
 servers:
   - url: /
-    description: El mismo servidor que publica esta documentación
+    description: Servidor actual
+  - url: https://miniblog-api-fb6m.onrender.com/api-docs/
+    description: Producción en Render
+  - url:  https://pt38-authorpost-api-production.up.railway.app/api-docs
+    description: Backup en Railway
+  - url: http://localhost:3000
+    description: Desarrollo local
 
 # La API es pública: ninguna operación requiere autenticación.
 security: []
@@ -612,3 +618,6 @@ components:
         status:
           type: integer
           description: Código de estado HTTP
+
+
+
