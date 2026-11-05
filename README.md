@@ -2,7 +2,11 @@
 
 API REST para gestionar autores, posts y comentarios, hecha con Node.js, Express y PostgreSQL. Un autor puede tener muchos posts, y un post puede tener muchos comentarios.
 
-- **URL pública:** https://pt38-authorpost-api-production.up.railway.app/
+
+- **URL pública principal:**https://miniblog-api-fb6m.onrender.com/
+ **Documentación interactiva:**https://miniblog-api-fb6m.onrender.com/api-docs
+
+- **URL pública backup:** https://pt38-authorpost-api-production.up.railway.app/
 - **Documentación interactiva:** https://pt38-authorpost-api-production.up.railway.app/api-docs
 ❤️ Health check: https://pt38-authorpost-api-production.up.railway.app/health
 
