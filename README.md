@@ -334,16 +334,10 @@ Este proyecto se desarrolló con la ayuda de **Claude Code** (modelo Claude Opus
 | Extra credit de comentarios (tabla, endpoints, tests y OpenAPI) | ayudados por lo IA |
 | README | Redaccion ayudado por la IA |
 
-
-#	Prompt (resumido)	Qué produjo	Qué revisé / cambié yo
-1	"Estructura de carpetas para una API REST Express + PostgreSQL en capas"	Esqueleto routes / controllers / services / middlewares / config	Verifiqué que la separación de responsabilidades fuera coherente con lo visto en el módulo.
-
-2	"Schema SQL para authors y posts con relación 1:N, constraints e índices"	src/db/setup.sql y src/db/seed.sql con PK, FK, UNIQUE, NOT NULL e índices	Probé el script en mi PostgreSQL local y confirmé el borrado en cascada.
-
-3	"Middleware global de errores que traduzca códigos de PostgreSQL a HTTP"	errorHandler.js con mapeo 23505 → 409, 23503 → 400	Comprobé cada caso disparando errores reales desde Postman.
-
-4	"Tests con Vitest y Supertest que cubran CRUD y casos de error"	Suite de tests contra PostgreSQL real; solo el caso de error 500 simula un fallo de la base de datos	Agregué/ajusté casos y verifiqué que fallaran al romper el código a propósito.
-
-5	"Documento OpenAPI para estos endpoints"	src/docs/openapi.yaml (OpenAPI 3.1.1)	Lo validé en Swagger UI y corregí ejemplos y descripciones.
-
-
+| # | Prompt (resumido) | Qué produjo | Qué revisé / cambié yo |
+|---|---|---|---|
+| 1 | "Estructura de carpetas para una API REST Express + PostgreSQL en capas" | Esqueleto routes / controllers / services / middlewares / config | Verifiqué que la separación de responsabilidades fuera coherente con lo visto en el módulo. |
+| 2 | "Schema SQL para authors y posts con relación 1:N, constraints e índices" | src/db/setup.sql y src/db/seed.sql con PK, FK, UNIQUE, NOT NULL e índices | Probé el script en mi PostgreSQL local y confirmé el borrado en cascada. |
+| 3 | "Middleware global de errores que traduzca códigos de PostgreSQL a HTTP" | errorHandler.js con mapeo 23505 → 409, 23503 → 400 | Comprobé cada caso disparando errores reales desde Postman. |
+| 4 | "Tests con Vitest y Supertest que cubran CRUD y casos de error" | Suite de tests contra PostgreSQL real; solo el caso de error 500 simula un fallo de la base de datos | Agregué/ajusté casos y verifiqué que fallaran al romper el código a propósito. |
+| 5 | "Documento OpenAPI para estos endpoints" | src/docs/openapi.yaml (OpenAPI 3.1.1) | Lo validé en Swagger UI y corregí ejemplos y descripciones. |
