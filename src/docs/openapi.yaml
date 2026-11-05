@@ -2,7 +2,7 @@ openapi: 3.1.1
 info:
   title: Api MiniBlog
   version: 1.0.0
-  description: API REST para gestionar autores y posts de un blog.
+  description: API REST para gestionar autores, posts y comentarios de un blog.
   license:
     name: ISC
     identifier: ISC
@@ -19,6 +19,8 @@ tags:
     description: Operaciones sobre autores
   - name: Posts
     description: Operaciones sobre posts
+  - name: Comentarios
+    description: Operaciones sobre comentarios
   - name: Sistema
     description: Estado del servicio
 
@@ -128,7 +130,9 @@ paths:
     delete:
       operationId: deleteAuthor
       summary: Eliminar un autor
-      description: También elimina todos los posts del autor.
+      description: >-
+        También elimina sus posts y los comentarios de esos posts. Sus comentarios
+        en posts de otros autores se conservan con `author_id` en null.
       tags:
         - Autores
       responses:
@@ -257,6 +261,7 @@ paths:
     delete:
       operationId: deletePost
       summary: Eliminar un post
+      description: También elimina los comentarios del post.
       tags:
         - Posts
       responses:
@@ -266,6 +271,78 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /posts/{postId}/comments:
+    parameters:
+      - name: postId
+        in: path
+        required: true
+        description: Id del post
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+    get:
+      operationId: getCommentsByPost
+      summary: Listar los comentarios de un post
+      description: Si el post existe pero no tiene comentarios, devuelve una lista vacía.
+      tags:
+        - Comentarios
+      responses:
+        '200':
+          description: Comentarios del post
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /comments:
+    get:
+      operationId: getAllComments
+      summary: Listar comentarios
+      tags:
+        - Comentarios
+      responses:
+        '200':
+          description: Lista de comentarios
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      operationId: createComment
+      summary: Crear un comentario
+      tags:
+        - Comentarios
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentInput'
+      responses:
+        '201':
+          description: Comentario creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '500':
           $ref: '#/components/responses/InternalError'
 
@@ -470,6 +547,58 @@ components:
                     - string
                     - 'null'
                   example: Desarrolladora full-stack
+
+    Comment:
+      type: object
+      required:
+        - id
+        - post_id
+        - author_id
+        - content
+        - created_at
+      properties:
+        id:
+          type: integer
+          example: 1
+        post_id:
+          type: integer
+          example: 1
+        author_id:
+          type:
+            - integer
+            - 'null'
+          description: Es null si el autor del comentario fue eliminado.
+          example: 2
+        content:
+          type: string
+          example: Muy buena introducción, gracias.
+        created_at:
+          type: string
+          format: date-time
+
+    CommentInput:
+      type: object
+      required:
+        - post_id
+        - author_id
+        - content
+      properties:
+        post_id:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+          description: Id de un post existente.
+          example: 1
+        author_id:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+          description: Id de un autor existente.
+          example: 2
+        content:
+          type: string
+          minLength: 1
+          example: Muy buena introducción, gracias.
 
     Error:
       type: object
