@@ -263,4 +263,20 @@ Este proyecto se desarrolló con la ayuda de **Claude Code** (modelo Claude Opus
 | Extra credit de comentarios (tabla, endpoints, tests y OpenAPI) | ayudados por lo IA |
 | README | Redaccion ayudado por la IA |
 
-La IA ejecutó los tests y probó los endpoints contra una instalación local de PostgreSQL.
+Registro del uso de IA en el proyecto
+Este documento deja constancia de cómo se utilizaron herramientas de IA (Claude) durante el desarrollo del Proyecto Integrador, qué se pidió, qué se aceptó y qué se corrigió o decidió manualmente.
+
+Completá o ajustá esta tabla con tu experiencia real antes de entregar. Los evaluadores valoran la honestidad y el criterio propio más que la cantidad de prompts.
+
+|Herramientas utilizadas|
+|Herramienta	Uso principal|
+Claude	Andamiaje del proyecto, revisión de SQL, generación de casos de test, redacción de documentación
+Prompts relevantes y su impacto
+#	Prompt (resumido)	Qué produjo	Qué revisé / cambié yo
+1	"Estructura de carpetas para una API REST Express + PostgreSQL en capas"	Esqueleto routes / controllers / services / middlewares / config	Verifiqué que la separación de responsabilidades fuera coherente con lo visto en el módulo
+2	"Schema SQL para authors y posts con relación 1:N, constraints e índices"	db/init.sql con PK, FK, UNIQUE, CHECK e índices	Probé el script en mi PostgreSQL local y confirmé el borrado en cascada
+3	"Middleware global de errores que traduzca códigos de PostgreSQL a HTTP"	errorHandler.js con mapeo 23505 → 409, 23503 → 400	Comprobé cada caso disparando errores reales desde Postman
+4	"Tests con Jest y supertest que cubran CRUD y casos de error"	Suite de tests con la capa de base de datos mockeada	Agregué/ajusté casos y verifiqué que fallaran al romper el código a propósito
+5	"Documento OpenAPI 3.0 para estos endpoints"	openapi.yaml	Lo validé en Swagger UI y corregí ejemplos y descripciones
+
+
