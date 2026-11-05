@@ -7,11 +7,6 @@ RENDER
  **Documentación interactiva:**https://miniblog-api-fb6m.onrender.com/api-docs
  ❤️ Health check: https://miniblog-api-fb6m.onrender.com/health
 
-RAILWAY
-- **URL pública backup:** https://pt38-authorpost-api-production.up.railway.app/
-- **Documentación interactiva:** https://pt38-authorpost-api-production.up.railway.app/api-docs
-❤️ Health check: https://pt38-authorpost-api-production.up.railway.app/health
-
 ## Requisitos
 
 - Node.js 20 o superior
@@ -169,6 +164,86 @@ npm test
 
 Con el servidor en marcha, abre `http://localhost:3000/api-docs` para usar Swagger UI. El archivo fuente es [`src/docs/openapi.yaml`](src/docs/openapi.yaml).
 
+## Despliegue en Render
+
+La API está desplegada en **https://miniblog-api-fb6m.onrender.com**. Para hacer tu propio despliegue, sube antes el proyecto a un repositorio de GitHub y sigue estos pasos. El archivo `.env` queda fuera del repositorio gracias a `.gitignore`.
+
+**1. Crea la base de datos.** En [Render](https://render.com), elige **New → Postgres** y completa:
+
+| Campo | Valor |
+|---|---|
+| **Name** | `miniblog-db` |
+| **Database** y **User** | Vacíos; Render los genera |
+| **Region** | La más cercana |
+| **Plan** | `Free` |
+
+Haz clic en **Create Database** y espera a que el estado sea **Available**.
+
+**2. Crea la API.** Elige **New → Web Service**, selecciona el repositorio y completa:
+
+| Campo | Valor |
+|---|---|
+| **Name** | `miniblog-api` |
+| **Language** | `Node` |
+| **Branch** | `main` |
+| **Region** | La misma de la base de datos |
+| **Build Command** | `npm install` |
+| **Start Command** | `npm start` |
+| **Instance Type** | `Free` |
+
+**3. Configura la variable de entorno.** En el Web Service, agrega esta variable y despliega:
+
+| Variable | Valor |
+|---|---|
+| `DATABASE_URL` | La **Internal Database URL** de `miniblog-db` |
+
+Render define `PORT` automáticamente, así que no debes agregarlo. `TEST_DATABASE_URL` tampoco hace falta, porque los tests no se ejecutan en producción.
+
+**4. Crea las tablas y carga los datos de ejemplo.** Copia la **External Database URL** de `miniblog-db` y ejecuta en tu computadora:
+
+```bash
+# Git Bash
+export DATABASE_URL="pega_aqui_la_external_url"
+export DB_SSL=true
+npm run db:setup
+npm run db:seed
+unset DATABASE_URL DB_SSL
+```
+
+```powershell
+# PowerShell
+$env:DATABASE_URL="pega_aqui_la_external_url"
+$env:DB_SSL="true"
+npm run db:setup
+npm run db:seed
+Remove-Item Env:DATABASE_URL, Env:DB_SSL
+```
+
+El último comando quita las variables de la terminal, para que siga usando tu base de datos local.
+
+**5. Comprueba el despliegue.**
+
+- `/health` responde `{"status":"ok"}`.
+- `/authors`, `/posts` y `/comments` devuelven los datos de ejemplo.
+- `/api-docs` muestra la documentación.
+
+### URL interna y URL externa en Render
+
+| URL | Dónde se usa |
+|---|---|
+| **Internal Database URL** | Dentro de Render; es la que usa la API |
+| **External Database URL** | Fuera de Render, por ejemplo desde tu computadora |
+
+Estas URL contienen la contraseña de la base de datos: no las subas al repositorio.
+
+### Actualizar el despliegue
+
+Si cambias el esquema, primero repite el paso 4 y después sube el código con `git push`. `db:setup` y `db:seed` no borran datos: solo crean lo que falta. Si Render no inicia un despliegue automático, usa **Manual Deploy → Deploy latest commit**.
+
+### Plan gratuito
+
+La API se apaga cuando pasa un tiempo sin uso, así que la primera petición puede tardar un rato. La base de datos gratuita puede tener fecha de vencimiento: revísala en el panel de Render.
+
 ## Despliegue en Railway
 
 **1. Sube el proyecto a un repositorio público de GitHub.** El archivo `.env` queda fuera gracias a `.gitignore`.
@@ -229,10 +304,6 @@ git push
 | Interna | Entre servicios del mismo proyecto; es la que usa la API | `DATABASE_URL` |
 | Pública | Desde fuera de Railway, por ejemplo tu computadora | `DATABASE_PUBLIC_URL` |
 
-### Despliegue en Render
-
-El proceso es equivalente: crea un **Web Service** con `npm install` como comando de build y `npm start` como comando de inicio, y una base de datos **PostgreSQL**. Usa la **Internal Database URL** como `DATABASE_URL` del servicio y la **External Database URL** con `DB_SSL=true` para ejecutar los scripts desde tu computadora.
-
 ## Estructura del proyecto
 
 ```text
@@ -267,12 +338,12 @@ Este proyecto se desarrolló con la ayuda de **Claude Code** (modelo Claude Opus
 #	Prompt (resumido)	Qué produjo	Qué revisé / cambié yo
 1	"Estructura de carpetas para una API REST Express + PostgreSQL en capas"	Esqueleto routes / controllers / services / middlewares / config	Verifiqué que la separación de responsabilidades fuera coherente con lo visto en el módulo.
 
-2	"Schema SQL para authors y posts con relación 1:N, constraints e índices"	db/init.sql con PK, FK, UNIQUE, CHECK e índices	Probé el script en mi PostgreSQL local y confirmé el borrado en cascada.
+2	"Schema SQL para authors y posts con relación 1:N, constraints e índices"	src/db/setup.sql y src/db/seed.sql con PK, FK, UNIQUE, NOT NULL e índices	Probé el script en mi PostgreSQL local y confirmé el borrado en cascada.
 
 3	"Middleware global de errores que traduzca códigos de PostgreSQL a HTTP"	errorHandler.js con mapeo 23505 → 409, 23503 → 400	Comprobé cada caso disparando errores reales desde Postman.
 
-4	"Tests con Jest y supertest que cubran CRUD y casos de error"	Suite de tests con la capa de base de datos mockeada	Agregué/ajusté casos y verifiqué que fallaran al romper el código a propósito.
+4	"Tests con Vitest y Supertest que cubran CRUD y casos de error"	Suite de tests contra PostgreSQL real; solo el caso de error 500 simula un fallo de la base de datos	Agregué/ajusté casos y verifiqué que fallaran al romper el código a propósito.
 
-5	"Documento OpenAPI 3.0 para estos endpoints"	openapi.yaml	Lo validé en Swagger UI y corregí ejemplos y descripciones.
+5	"Documento OpenAPI para estos endpoints"	src/docs/openapi.yaml (OpenAPI 3.1.1)	Lo validé en Swagger UI y corregí ejemplos y descripciones.
 
 

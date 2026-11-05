@@ -10,10 +10,11 @@ info:
 servers:
   - url: /
     description: Servidor actual
-  - url: https://miniblog-api-fb6m.onrender.com/api-docs/
+  - url: https://miniblog-api-fb6m.onrender.com
     description: Producción en Render
-  - url:  https://pt38-authorpost-api-production.up.railway.app/api-docs
+  - url: https://pt38-authorpost-api-production.up.railway.app
     description: Backup en Railway
+
   - url: http://localhost:3000
     description: Desarrollo local
 
